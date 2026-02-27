@@ -1,6 +1,6 @@
 # openclaw-websocket
 
-[![npm version](https://img.shields.io/npm/v/openclaw-websocket.svg)](https://www.npmjs.com/package/openclaw-websocket)
+[![npm version](https://img.shields.io/npm/v/@taichi-labs/openclaw-websocket.svg)](https://www.npmjs.com/package/@taichi-labs/openclaw-websocket)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 OpenClaw WebSocket 聊天渠道插件 - 通过 WebSocket 连接你的应用到 OpenClaw AI Agent。
