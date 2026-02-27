@@ -19,8 +19,11 @@ OpenClaw WebSocket 聊天渠道插件 - 通过 WebSocket 连接你的应用到 O
 ## 安装
 
 ```bash
-# 从 GitHub 安装
-openclaw plugin install github:Taichi-Labs/openclaw-websocket
+# 从 npm 安装
+openclaw plugins install @taichi-labs/openclaw-websocket
+
+# 或从 GitHub 安装
+openclaw plugins install github:Taichi-Labs/openclaw-websocket
 ```
 
 ## 配置

@@ -18,9 +18,6 @@
     "ci:check": "npx tsc --noEmit"
   },
   "license": "MIT",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "files": [
     "index.ts",
     "src/**/*.ts",
@@ -53,6 +50,7 @@
     },
     "install": {
       "npmSpec": "@taichi-labs/openclaw-websocket",
+      "registry": "https://registry.npmjs.org",
       "localPath": ".",
       "defaultChoice": "npm"
     }
