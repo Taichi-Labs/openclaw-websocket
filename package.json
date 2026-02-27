@@ -1,0 +1,72 @@
+{
+  "name": "openclaw-websocket",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "OpenClaw WebSocket chat channel plugin - Connect your apps to OpenClaw via WebSocket",
+  "author": "qingmu",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Taichi-Labs/openclaw-websocket.git"
+  },
+  "homepage": "https://github.com/Taichi-Labs/openclaw-websocket#readme",
+  "bugs": {
+    "url": "https://github.com/Taichi-Labs/openclaw-websocket/issues"
+  },
+  "scripts": {
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "ci:check": "npx tsc --noEmit"
+  },
+  "license": "MIT",
+  "files": [
+    "index.ts",
+    "src/**/*.ts",
+    "!src/**/__tests__/**",
+    "!src/**/*.test.ts",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "keywords": [
+    "openclaw",
+    "websocket",
+    "chatbot",
+    "ai",
+    "claude",
+    "channel",
+    "realtime"
+  ],
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "ws",
+      "label": "ClawSocket",
+      "selectionLabel": "ClawSocket (WebSocket)",
+      "docsPath": "/channels/clawsocket",
+      "docsLabel": "clawsocket",
+      "blurb": "WebSocket-based chat interface for OpenClaw.",
+      "order": 100
+    },
+    "install": {
+      "npmSpec": "openclaw-websocket",
+      "localPath": ".",
+      "defaultChoice": "npm"
+    }
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.0",
+    "openclaw": ">=2026.2.13",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.2.13"
+  }
+}
