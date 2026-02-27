@@ -9,7 +9,7 @@ export { WsChatServer, getWsServer } from "./src/websocket-server.js";
 export type { WsConfig, WsMessageContext, WsInboundMessage, WsOutboundMessage } from "./src/types.js";
 
 const plugin = {
-  id: "ws",
+  id: "openclaw-websocket",
   name: "WebSocket",
   description: "WebSocket chat channel plugin",
   configSchema: emptyPluginConfigSchema(),
