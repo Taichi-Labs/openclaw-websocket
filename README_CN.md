@@ -19,10 +19,7 @@ OpenClaw WebSocket 聊天渠道插件 - 通过 WebSocket 连接你的应用到 O
 ## 安装
 
 ```bash
-# 从 npm 安装
-openclaw plugin install openclaw-websocket
-
-# 或从 GitHub 安装
+# 从 GitHub 安装
 openclaw plugin install github:Taichi-Labs/openclaw-websocket
 ```
 
@@ -248,6 +245,13 @@ ws = websocket.WebSocketApp(
     on_open=on_open
 )
 ws.run_forever()
+```
+
+### cURL (通过 websocat)
+
+```bash
+echo '{"type":"chat.send","content":"你好！"}' | \
+  websocat 'ws://127.0.0.1:18800/ws?senderId=user1'
 ```
 
 ## 会话管理

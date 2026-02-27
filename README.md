@@ -19,10 +19,7 @@ OpenClaw WebSocket channel plugin - Connect your applications to OpenClaw AI age
 ## Installation
 
 ```bash
-# Install from npm
-openclaw plugin install openclaw-websocket
-
-# Or install from GitHub
+# Install from GitHub
 openclaw plugin install github:Taichi-Labs/openclaw-websocket
 ```
 
