@@ -12,7 +12,7 @@ export interface MonitorWsOptions {
 
 function resolveWsConfig(cfg: ClawdbotConfig, accountId?: string): WsConfig {
   const channelsCfg = cfg.channels as Record<string, unknown> | undefined;
-  const wsCfg = channelsCfg?.ws as Record<string, unknown> | undefined;
+  const wsCfg = channelsCfg?.websocket as Record<string, unknown> | undefined;
   
   const rawConfig = {
     enabled: wsCfg?.enabled ?? true,
@@ -33,7 +33,7 @@ export async function monitorWsProvider(options: MonitorWsOptions): Promise<void
   const wsConfig = resolveWsConfig(config, accountId);
 
   if (!wsConfig.enabled) {
-    log(`ws[${accountId}]: channel disabled, skipping`);
+    log(`websocket[${accountId}]: channel disabled, skipping`);
     return;
   }
 
@@ -56,7 +56,7 @@ export async function monitorWsProvider(options: MonitorWsOptions): Promise<void
 
   if (abortSignal) {
     abortSignal.addEventListener("abort", () => {
-      log(`ws[${accountId}]: received abort signal, stopping server`);
+      log(`websocket[${accountId}]: received abort signal, stopping server`);
       server.stop();
       setWsServer(null);
     });

@@ -1,6 +1,6 @@
 {
   "id": "openclaw-websocket",
-  "channels": ["ws"],
+  "channels": ["websocket"],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

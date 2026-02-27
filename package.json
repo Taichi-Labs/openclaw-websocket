@@ -1,6 +1,6 @@
 {
   "name": "@taichi-labs/openclaw-websocket",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "OpenClaw WebSocket chat channel plugin - Connect your apps to OpenClaw via WebSocket",
   "author": "qingmu",
@@ -40,7 +40,7 @@
       "./index.ts"
     ],
     "channel": {
-      "id": "ws",
+      "id": "websocket",
       "label": "ClawSocket",
       "selectionLabel": "ClawSocket (WebSocket)",
       "docsPath": "/channels/clawsocket",

@@ -25,7 +25,7 @@ export async function handleWsMessage(params: {
 
     const route = core.channel.routing.resolveAgentRoute({
       cfg,
-      channel: "ws",
+      channel: "websocket",
       accountId,
       peer: {
         kind: isGroup ? "group" : "direct",
@@ -90,12 +90,12 @@ export async function handleWsMessage(params: {
       GroupSubject: isGroup ? (ctx.groupSubject ?? ctx.groupId) : undefined,
       SenderName: ctx.senderName ?? ctx.senderId,
       SenderId: ctx.senderId,
-      Provider: "ws" as const,
-      Surface: "ws" as const,
+      Provider: "websocket" as const,
+      Surface: "websocket" as const,
       MessageSid: ctx.messageId,
       Timestamp: ctx.timestamp,
       WasMentioned: true,
-      OriginatingChannel: "ws" as const,
+      OriginatingChannel: "websocket" as const,
       OriginatingTo: wsTo,
       ReplyToBody: ctx.replyToBody,
       ...mediaPayload,

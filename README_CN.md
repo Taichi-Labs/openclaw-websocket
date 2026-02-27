@@ -33,7 +33,7 @@ openclaw plugins install github:Taichi-Labs/openclaw-websocket
 ```json
 {
   "channels": {
-    "ws": {
+    "websocket": {
       "enabled": true,
       "port": 18800,
       "host": "0.0.0.0",
@@ -47,7 +47,7 @@ openclaw plugins install github:Taichi-Labs/openclaw-websocket
 
 ```yaml
 channels:
-  ws:
+  websocket:
     enabled: true
     port: 18800
     host: "0.0.0.0"

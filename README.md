@@ -33,7 +33,7 @@ Add to your OpenClaw configuration file:
 ```json
 {
   "channels": {
-    "ws": {
+    "websocket": {
       "enabled": true,
       "port": 18800,
       "host": "0.0.0.0",
@@ -47,7 +47,7 @@ Or in YAML format:
 
 ```yaml
 channels:
-  ws:
+  websocket:
     enabled: true
     port: 18800
     host: "0.0.0.0"

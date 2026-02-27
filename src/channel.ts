@@ -3,7 +3,7 @@ import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk";
 import type { ResolvedWsAccount, WsConfig } from "./types.js";
 
 const meta = {
-  id: "ws",
+  id: "websocket",
   label: "WebSocket",
   selectionLabel: "WebSocket Chat",
   docsPath: "/channels/ws",
@@ -15,7 +15,7 @@ const meta = {
 function resolveWsAccount(params: { cfg: ClawdbotConfig; accountId?: string }): ResolvedWsAccount {
   const { cfg, accountId = DEFAULT_ACCOUNT_ID } = params;
   const channelsCfg = cfg.channels as Record<string, unknown> | undefined;
-  const wsCfg = channelsCfg?.ws as WsConfig | undefined;
+  const wsCfg = channelsCfg?.websocket as WsConfig | undefined;
 
   const enabled = wsCfg?.enabled ?? true;
   const configured = true;
@@ -33,7 +33,7 @@ function listWsAccountIds(cfg: ClawdbotConfig): string[] {
 }
 
 export const wsPlugin: ChannelPlugin<ResolvedWsAccount> = {
-  id: "ws",
+  id: "websocket",
   meta: {
     ...meta,
   },
@@ -70,7 +70,7 @@ export const wsPlugin: ChannelPlugin<ResolvedWsAccount> = {
         ...cfg,
         channels: {
           ...cfg.channels,
-          ws: {
+          websocket: {
             ...(cfg.channels as Record<string, unknown>)?.ws,
             enabled,
           },
