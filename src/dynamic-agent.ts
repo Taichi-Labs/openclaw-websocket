@@ -10,6 +10,12 @@ export interface DynamicAgentCreationConfig {
   maxAgents?: number;
 }
 
+export interface UserMemoryProfile {
+  userId: string;
+  username: string;
+  extra?: Record<string, unknown>;
+}
+
 export type MaybeCreateDynamicAgentResult = {
   created: boolean;
   updatedCfg: OpenClawConfig;
@@ -22,9 +28,10 @@ export async function maybeCreateDynamicAgent(params: {
   senderId: string;
   dynamicCfg: DynamicAgentCreationConfig;
   accountId?: string;
+  userProfile?: UserMemoryProfile;
   log: (msg: string) => void;
 }): Promise<MaybeCreateDynamicAgentResult> {
-  const { cfg, runtime, senderId, dynamicCfg, accountId, log } = params;
+  const { cfg, runtime, senderId, dynamicCfg, accountId, userProfile, log } = params;
 
   const existingBindings = cfg.bindings ?? [];
   const hasBinding = existingBindings.some(
@@ -91,6 +98,13 @@ export async function maybeCreateDynamicAgent(params: {
   await fs.promises.mkdir(workspace, { recursive: true });
   await fs.promises.mkdir(agentDir, { recursive: true });
 
+  if (userProfile) {
+    const memoryContent = buildBaseMemory(userProfile);
+    const memoryFile = path.join(agentDir, "user-profile.md");
+    await fs.promises.writeFile(memoryFile, memoryContent, "utf-8");
+    log(`websocket: wrote base memory for ${senderId} -> ${memoryFile}`);
+  }
+
   const updatedCfg: OpenClawConfig = {
     ...cfg,
     agents: {
@@ -119,4 +133,48 @@ function resolveUserPath(p: string): string {
     return path.join(os.homedir(), p.slice(2));
   }
   return p;
+}
+
+function buildBaseMemory(profile: UserMemoryProfile): string {
+  const lines: string[] = [
+    `# 用户基础信息`,
+    ``,
+    `- 用户ID: ${profile.userId}`,
+    `- 用户名: ${profile.username}`,
+  ];
+
+  const extra = profile.extra;
+  if (!extra) return lines.join("\n") + "\n";
+
+  if (extra.position) {
+    lines.push(`- 岗位: ${extra.position}`);
+  }
+  if (extra.role) {
+    lines.push(`- 角色: ${extra.role}`);
+  }
+
+  const stores = extra.stores as Array<Record<string, string>> | undefined;
+  if (stores && stores.length > 0) {
+    lines.push(``, `## 所属门店`);
+    for (const s of stores) {
+      lines.push(`- ${s.storeName ?? s.storeId}（编号: ${s.storeId}，城市: ${s.city ?? "未知"}）`);
+    }
+  }
+
+  const warehouses = extra.warehouses as Array<Record<string, string>> | undefined;
+  if (warehouses && warehouses.length > 0) {
+    lines.push(``, `## 所属仓库`);
+    for (const w of warehouses) {
+      lines.push(`- ${w.warehouseName ?? w.warehouseId}（编号: ${w.warehouseId}）`);
+    }
+  }
+
+  // 其余扩展字段
+  const knownKeys = new Set(["role", "position", "stores", "warehouses"]);
+  for (const [key, value] of Object.entries(extra)) {
+    if (knownKeys.has(key)) continue;
+    lines.push(`- ${key}: ${JSON.stringify(value)}`);
+  }
+
+  return lines.join("\n") + "\n";
 }

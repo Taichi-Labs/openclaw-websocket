@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket, RawData } from "ws";
 import type { IncomingMessage } from "http";
 import type { WsConfig, WsAuthConfig, WsInboundMessage, WsOutboundMessage, WsMessageContext } from "./types.js";
-import { verifyToken, AuthError } from "./auth.js";
+import { verifyToken, AuthError, type AuthResult } from "./auth.js";
 import { randomUUID } from "crypto";
 
 export interface WsServerOptions {
@@ -16,6 +16,8 @@ interface ClientConnection {
   senderId: string;
   senderName?: string;
   authenticated: boolean;
+  token?: string;
+  authInfo?: AuthResult;
   connectedAt: number;
 }
 
@@ -86,9 +88,11 @@ export class WsChatServer {
     let senderId = urlParams.get("senderId") ?? connectionId;
     let senderName = urlParams.get("senderName") ?? undefined;
     let authenticated = false;
+    let token: string | undefined;
+    let authInfo: AuthResult | undefined;
 
     if (this.authEnabled) {
-      const token = urlParams.get("token");
+      token = urlParams.get("token") ?? undefined;
       if (token) {
         try {
           const authParams: Record<string, string> = {};
@@ -96,9 +100,9 @@ export class WsChatServer {
           if (!authParams.tokenType) {
             authParams.tokenType = "local";
           }
-          const authResult = await verifyToken(this.authConfig!, authParams);
-          senderId = authResult.userId;
-          senderName = authResult.username;
+          authInfo = await verifyToken(this.authConfig!, authParams);
+          senderId = authInfo.userId;
+          senderName = authInfo.username;
           authenticated = true;
           this.log(`websocket: auth ok id=${connectionId} userId=${senderId} tokenType=${authParams.tokenType}`);
         } catch (err) {
@@ -129,6 +133,8 @@ export class WsChatServer {
       senderId,
       senderName,
       authenticated,
+      token,
+      authInfo,
       connectedAt: Date.now(),
     };
 
@@ -172,6 +178,9 @@ export class WsChatServer {
         senderName: msg.senderName ?? conn.senderName,
         content: msg.content,
         timestamp: Date.now(),
+        // 鉴权信息
+        token: conn.token,
+        authExtra: conn.authInfo?.extra,
         // 扩展字段
         chatType: msg.chatType ?? "direct",
         groupId: msg.groupId,

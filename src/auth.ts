@@ -29,7 +29,7 @@ export async function verifyToken(
       signal: controller.signal,
     });
 
-    const body: AuthVerifyResponse = await res.json();
+    const body = (await res.json()) as AuthVerifyResponse;
 
     if (!body.success || !body.data) {
       throw new AuthError(

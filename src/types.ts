@@ -36,6 +36,9 @@ export interface WsMessageContext {
   senderName?: string;
   content: string;
   timestamp: number;
+  // 鉴权信息
+  token?: string;
+  authExtra?: Record<string, unknown>;
   // 扩展字段
   chatType: "direct" | "group";
   groupId?: string;

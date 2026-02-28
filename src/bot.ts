@@ -46,6 +46,9 @@ export async function handleWsMessage(params: {
           senderId: ctx.senderId,
           dynamicCfg,
           accountId,
+          userProfile: ctx.authExtra
+            ? { userId: ctx.senderId, username: ctx.senderName ?? ctx.senderId, extra: ctx.authExtra }
+            : undefined,
           log: (msg) => log(msg),
         });
         if (result.created) {
@@ -127,6 +130,10 @@ export async function handleWsMessage(params: {
       OriginatingTo: wsTo,
       ReplyToBody: ctx.replyToBody,
       ...mediaPayload,
+      // 用户 token 透传给 Agent（用于调用外部 API）
+      ...(ctx.token ? { UserToken: ctx.token } : {}),
+      // 用户业务信息（门店/仓/岗位等）
+      ...(ctx.authExtra ?? {}),
       // 自定义数据透传
       ...(ctx.customData ?? {}),
     });
