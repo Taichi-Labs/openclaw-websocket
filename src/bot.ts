@@ -46,8 +46,12 @@ export async function handleWsMessage(params: {
           senderId: ctx.senderId,
           dynamicCfg,
           accountId,
-          userProfile: ctx.authExtra
-            ? { userId: ctx.senderId, username: ctx.senderName ?? ctx.senderId, extra: ctx.authExtra }
+          userProfile: ctx.authData
+            ? {
+                userId: (ctx.authData.userId as string) ?? ctx.senderId,
+                username: (ctx.authData.username as string) ?? ctx.senderName ?? ctx.senderId,
+                extra: (ctx.authData.extra as Record<string, unknown>) ?? {},
+              }
             : undefined,
           log: (msg) => log(msg),
         });
@@ -132,8 +136,8 @@ export async function handleWsMessage(params: {
       ...mediaPayload,
       // 用户 token 透传给 Agent（用于调用外部 API）
       ...(ctx.token ? { UserToken: ctx.token } : {}),
-      // 用户业务信息（门店/仓/岗位等）
-      ...(ctx.authExtra ?? {}),
+      // auth 服务返回的完整用户数据
+      ...(ctx.authData ?? {}),
       // 自定义数据透传
       ...(ctx.customData ?? {}),
     });

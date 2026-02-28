@@ -180,7 +180,7 @@ export class WsChatServer {
         timestamp: Date.now(),
         // 鉴权信息
         token: conn.token,
-        authExtra: conn.authInfo?.extra,
+        authData: conn.authInfo ? { ...conn.authInfo } as Record<string, unknown> : undefined,
         // 扩展字段
         chatType: msg.chatType ?? "direct",
         groupId: msg.groupId,
