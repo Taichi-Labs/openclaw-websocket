@@ -1,6 +1,6 @@
 {
   "name": "@taichi-labs/openclaw-websocket",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
   "description": "OpenClaw WebSocket chat channel plugin - Connect your apps to OpenClaw via WebSocket",
   "author": "qingmu",

@@ -1,5 +1,21 @@
 import { z } from "zod";
 
+export const WsAuthConfigSchema = z.object({
+  enabled: z.boolean().optional().default(true),
+  endpoint: z.string().optional().default("http://localhost:3000/api/auth/verify"),
+  timeout: z.number().optional().default(5000),
+  required: z.boolean().optional().default(true),
+});
+
+export type WsAuthConfig = z.infer<typeof WsAuthConfigSchema>;
+
+export const WsDynamicAgentSchema = z.object({
+  enabled: z.boolean().optional().default(true),
+  workspaceTemplate: z.string().optional(),
+  agentDirTemplate: z.string().optional(),
+  maxAgents: z.number().int().positive().optional(),
+});
+
 export const WsConfigSchema = z.object({
   enabled: z.boolean().optional().default(true),
   port: z.number().optional().default(18800),
@@ -7,6 +23,8 @@ export const WsConfigSchema = z.object({
   path: z.string().optional().default("/ws"),
   dmPolicy: z.enum(["open", "pairing", "allowlist"]).optional().default("open"),
   allowFrom: z.array(z.string()).optional().default([]),
+  auth: WsAuthConfigSchema.optional(),
+  dynamicAgentCreation: WsDynamicAgentSchema.optional(),
 });
 
 export type WsConfig = z.infer<typeof WsConfigSchema>;

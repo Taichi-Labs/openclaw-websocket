@@ -54,6 +54,67 @@ channels:
     path: "/ws"
 ```
 
+### 鉴权配置
+
+鉴权**默认开启**。插件会在连接时调用你的鉴权服务验证 token，并使用返回的 `userId` / `username` 作为会话身份。
+
+```json
+{
+  "channels": {
+    "websocket": {
+      "enabled": true,
+      "port": 18800,
+      "auth": {
+        "enabled": true,
+        "endpoint": "http://localhost:3000/api/auth/verify",
+        "timeout": 5000,
+        "required": true
+      }
+    }
+  }
+}
+```
+
+启用 `auth.enabled` 后，客户端需要通过 URL 参数传递 token：
+
+```
+ws://127.0.0.1:18800/ws?token=你的JWT_TOKEN
+```
+
+插件会向 `auth.endpoint` 发送 POST 请求：
+
+```json
+{ "token": "你的JWT_TOKEN" }
+```
+
+期望响应：
+
+```json
+{
+  "success": true,
+  "data": {
+    "userId": "user_123",
+    "username": "张三"
+  }
+}
+```
+
+如果 `auth.required` 设为 `false`，未携带 token 的连接将以匿名用户身份继续。
+
+#### 环境变量
+
+鉴权配置也可以通过环境变量设置（优先级高于配置文件）：
+
+| 变量 | 说明 | 示例 |
+|------|------|------|
+| `WS_AUTH_ENABLED` | 启用/禁用鉴权 (`true`/`false`/`1`/`0`) | `WS_AUTH_ENABLED=true` |
+| `WS_AUTH_ENDPOINT` | 鉴权服务验证接口 URL | `WS_AUTH_ENDPOINT=http://auth:3000/api/auth/verify` |
+
+```bash
+# 示例：通过环境变量启动
+WS_AUTH_ENABLED=true WS_AUTH_ENDPOINT=http://auth-service:3000/api/auth/verify openclaw start
+```
+
 ### 配置选项
 
 | 选项 | 类型 | 默认值 | 说明 |
@@ -62,6 +123,38 @@ channels:
 | `port` | number | `18800` | WebSocket 服务端口 |
 | `host` | string | `"0.0.0.0"` | 服务器监听地址 |
 | `path` | string | `"/ws"` | WebSocket 端点路径 |
+| `auth.enabled` | boolean | `true` | 启用外部鉴权服务 |
+| `auth.endpoint` | string | `"http://localhost:3000/api/auth/verify"` | 鉴权服务验证接口 URL |
+| `auth.timeout` | number | `5000` | 鉴权请求超时时间（毫秒） |
+| `auth.required` | boolean | `true` | 是否强制鉴权，false 时允许匿名连接 |
+| `dynamicAgentCreation.enabled` | boolean | `false` | 为每个私聊用户自动创建独立 Agent |
+| `dynamicAgentCreation.workspaceTemplate` | string | `"~/.openclaw/workspace-{agentId}"` | 工作区路径模板 |
+| `dynamicAgentCreation.agentDirTemplate` | string | `"~/.openclaw/agents/{agentId}/agent"` | Agent 目录路径模板 |
+| `dynamicAgentCreation.maxAgents` | number | - | 最大动态 Agent 数量 |
+
+### 动态 Agent 创建
+
+启用后，每个私聊用户会自动获得一个独立的 Agent 和工作区，适用于多租户场景。
+
+```json
+{
+  "channels": {
+    "websocket": {
+      "enabled": true,
+      "dynamicAgentCreation": {
+        "enabled": true,
+        "workspaceTemplate": "~/.openclaw/workspace-{agentId}",
+        "agentDirTemplate": "~/.openclaw/agents/{agentId}/agent",
+        "maxAgents": 100
+      }
+    }
+  }
+}
+```
+
+模板变量：
+- `{userId}` — 连接用户的 `senderId`
+- `{agentId}` — 自动生成的 Agent ID（`ws-{senderId}`）
 
 ## 快速开始
 

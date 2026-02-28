@@ -54,6 +54,67 @@ channels:
     path: "/ws"
 ```
 
+### Authentication
+
+Auth is **enabled by default**. The plugin calls your auth service endpoint on connection and uses the returned `userId` / `username` as the session identity.
+
+```json
+{
+  "channels": {
+    "websocket": {
+      "enabled": true,
+      "port": 18800,
+      "auth": {
+        "enabled": true,
+        "endpoint": "http://localhost:3000/api/auth/verify",
+        "timeout": 5000,
+        "required": true
+      }
+    }
+  }
+}
+```
+
+When `auth.enabled` is `true`, clients must pass a token via URL parameter:
+
+```
+ws://127.0.0.1:18800/ws?token=YOUR_JWT_TOKEN
+```
+
+The plugin sends a `POST` request to `auth.endpoint`:
+
+```json
+{ "token": "YOUR_JWT_TOKEN" }
+```
+
+Expected response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "userId": "user_123",
+    "username": "John"
+  }
+}
+```
+
+If `auth.required` is `false`, unauthenticated connections are allowed as anonymous users.
+
+#### Environment Variables
+
+Auth settings can also be configured via environment variables (they override config file values):
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `WS_AUTH_ENABLED` | Enable/disable auth (`true`/`false`/`1`/`0`) | `WS_AUTH_ENABLED=true` |
+| `WS_AUTH_ENDPOINT` | Auth service verify URL | `WS_AUTH_ENDPOINT=http://auth:3000/api/auth/verify` |
+
+```bash
+# Example: start with env vars
+WS_AUTH_ENABLED=true WS_AUTH_ENDPOINT=http://auth-service:3000/api/auth/verify openclaw start
+```
+
 ### Configuration Options
 
 | Option | Type | Default | Description |
@@ -62,6 +123,38 @@ channels:
 | `port` | number | `18800` | WebSocket server port |
 | `host` | string | `"0.0.0.0"` | Server bind address |
 | `path` | string | `"/ws"` | WebSocket endpoint path |
+| `auth.enabled` | boolean | `true` | Enable external auth service |
+| `auth.endpoint` | string | `"http://localhost:3000/api/auth/verify"` | Auth service verify URL |
+| `auth.timeout` | number | `5000` | Auth request timeout (ms) |
+| `auth.required` | boolean | `true` | Reject connections without valid token |
+| `dynamicAgentCreation.enabled` | boolean | `false` | Auto-create agent per DM user |
+| `dynamicAgentCreation.workspaceTemplate` | string | `"~/.openclaw/workspace-{agentId}"` | Workspace path template |
+| `dynamicAgentCreation.agentDirTemplate` | string | `"~/.openclaw/agents/{agentId}/agent"` | Agent dir path template |
+| `dynamicAgentCreation.maxAgents` | number | - | Max dynamic agents allowed |
+
+### Dynamic Agent Creation
+
+When enabled, each DM user automatically gets an independent agent with its own workspace. This is useful for multi-tenant scenarios.
+
+```json
+{
+  "channels": {
+    "websocket": {
+      "enabled": true,
+      "dynamicAgentCreation": {
+        "enabled": true,
+        "workspaceTemplate": "~/.openclaw/workspace-{agentId}",
+        "agentDirTemplate": "~/.openclaw/agents/{agentId}/agent",
+        "maxAgents": 100
+      }
+    }
+  }
+}
+```
+
+Template variables:
+- `{userId}` — the `senderId` of the connecting user
+- `{agentId}` — auto-generated agent ID (`ws-{senderId}`)
 
 ## Quick Start
 

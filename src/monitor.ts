@@ -14,6 +14,19 @@ function resolveWsConfig(cfg: ClawdbotConfig, accountId?: string): WsConfig {
   const channelsCfg = cfg.channels as Record<string, unknown> | undefined;
   const wsCfg = channelsCfg?.websocket as Record<string, unknown> | undefined;
   
+  const authCfg = wsCfg?.auth as Record<string, unknown> | undefined;
+
+  const envAuthEnabled = process.env.WS_AUTH_ENABLED;
+  const envAuthEndpoint = process.env.WS_AUTH_ENDPOINT;
+
+  const resolvedAuth = {
+    ...(authCfg ?? {}),
+    ...(envAuthEnabled !== undefined
+      ? { enabled: envAuthEnabled === "true" || envAuthEnabled === "1" }
+      : {}),
+    ...(envAuthEndpoint ? { endpoint: envAuthEndpoint } : {}),
+  };
+
   const rawConfig = {
     enabled: wsCfg?.enabled ?? true,
     port: wsCfg?.port ?? 18800,
@@ -21,6 +34,8 @@ function resolveWsConfig(cfg: ClawdbotConfig, accountId?: string): WsConfig {
     path: wsCfg?.path ?? "/ws",
     dmPolicy: wsCfg?.dmPolicy ?? "open",
     allowFrom: wsCfg?.allowFrom ?? [],
+    auth: resolvedAuth,
+    dynamicAgentCreation: (wsCfg?.dynamicAgentCreation as Record<string, unknown>) ?? {},
   };
 
   return WsConfigSchema.parse(rawConfig);
@@ -31,6 +46,14 @@ export async function monitorWsProvider(options: MonitorWsOptions): Promise<void
   const log = runtime.log ?? console.log;
 
   const wsConfig = resolveWsConfig(config, accountId);
+
+  log(`websocket[${accountId}]: resolved config:`);
+  log(`  enabled: ${wsConfig.enabled}`);
+  log(`  listen: ${wsConfig.host}:${wsConfig.port}${wsConfig.path}`);
+  log(`  auth.enabled: ${wsConfig.auth?.enabled ?? "not configured"}`);
+  log(`  auth.endpoint: ${wsConfig.auth?.endpoint ?? "not configured"}`);
+  log(`  auth.required: ${wsConfig.auth?.required ?? "not configured"}`);
+  log(`  dynamicAgentCreation: ${wsConfig.dynamicAgentCreation?.enabled ?? false}`);
 
   if (!wsConfig.enabled) {
     log(`websocket[${accountId}]: channel disabled, skipping`);
@@ -43,6 +66,7 @@ export async function monitorWsProvider(options: MonitorWsOptions): Promise<void
     onMessage: async (ctx, send) => {
       await handleWsMessage({
         cfg: config,
+        wsConfig,
         ctx,
         send,
         accountId,

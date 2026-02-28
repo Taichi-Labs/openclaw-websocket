@@ -2,14 +2,16 @@ import type { ClawdbotConfig, RuntimeEnv } from "openclaw/plugin-sdk";
 import type { WsMessageContext, WsOutboundMessage, WsConfig } from "./types.js";
 import { getWsRuntime } from "./runtime.js";
 import { createWsReplyDispatcher } from "./reply-dispatcher.js";
+import { maybeCreateDynamicAgent, type DynamicAgentCreationConfig } from "./dynamic-agent.js";
 
 export async function handleWsMessage(params: {
   cfg: ClawdbotConfig;
+  wsConfig: WsConfig;
   ctx: WsMessageContext;
   send: (msg: WsOutboundMessage) => void;
   accountId?: string;
 }): Promise<void> {
-  const { cfg, ctx, send, accountId = "default" } = params;
+  const { cfg, wsConfig, ctx, send, accountId = "default" } = params;
 
   const core = getWsRuntime();
   const log = core.log ?? console.log;
@@ -23,7 +25,7 @@ export async function handleWsMessage(params: {
     const wsTo = isGroup ? `ws:group:${ctx.groupId}` : `ws:${ctx.connectionId}`;
     const peerId = isGroup ? ctx.groupId! : ctx.senderId;
 
-    const route = core.channel.routing.resolveAgentRoute({
+    let route = core.channel.routing.resolveAgentRoute({
       cfg,
       channel: "websocket",
       accountId,
@@ -32,6 +34,32 @@ export async function handleWsMessage(params: {
         id: peerId,
       },
     });
+
+    let effectiveCfg = cfg;
+    if (!isGroup && route.matchedBy === "default") {
+      const dynamicCfg = wsConfig.dynamicAgentCreation;
+      if (dynamicCfg?.enabled) {
+        log(`websocket[${accountId}]: dynamic agent creation triggered for ${ctx.senderId}`);
+        const result = await maybeCreateDynamicAgent({
+          cfg,
+          runtime: core,
+          senderId: ctx.senderId,
+          dynamicCfg,
+          accountId,
+          log: (msg) => log(msg),
+        });
+        if (result.created) {
+          effectiveCfg = result.updatedCfg;
+          route = core.channel.routing.resolveAgentRoute({
+            cfg: result.updatedCfg,
+            channel: "websocket",
+            accountId,
+            peer: { kind: "direct", id: ctx.senderId },
+          });
+          log(`websocket[${accountId}]: dynamic agent created, route: ${route.sessionKey}`);
+        }
+      }
+    }
 
     const preview = ctx.content.replace(/\s+/g, " ").slice(0, 160);
     const inboundLabel = isGroup
@@ -43,7 +71,7 @@ export async function handleWsMessage(params: {
       contextKey: `ws:message:${ctx.connectionId}:${ctx.messageId}`,
     });
 
-    const envelopeOptions = core.channel.reply.resolveEnvelopeFormatOptions(cfg);
+    const envelopeOptions = core.channel.reply.resolveEnvelopeFormatOptions(effectiveCfg);
 
     const speaker = ctx.senderName ?? ctx.senderId;
     let messageBody = `${speaker}: ${ctx.content}`;
@@ -104,7 +132,7 @@ export async function handleWsMessage(params: {
     });
 
     const { dispatcher, replyOptions, markDispatchIdle } = createWsReplyDispatcher({
-      cfg,
+      cfg: effectiveCfg,
       agentId: route.agentId,
       runtime: core,
       connectionId: ctx.connectionId,
@@ -116,7 +144,7 @@ export async function handleWsMessage(params: {
 
     const { queuedFinal, counts } = await core.channel.reply.dispatchReplyFromConfig({
       ctx: ctxPayload,
-      cfg,
+      cfg: effectiveCfg,
       dispatcher,
       replyOptions,
     });

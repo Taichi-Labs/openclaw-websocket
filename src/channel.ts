@@ -46,7 +46,7 @@ export const wsPlugin: ChannelPlugin<ResolvedWsAccount> = {
     edit: false,
     reply: true,
   },
-  reload: { configPrefixes: ["channels.ws"] },
+  reload: { configPrefixes: ["channels.websocket"] },
   configSchema: {
     schema: {
       type: "object",
@@ -58,6 +58,26 @@ export const wsPlugin: ChannelPlugin<ResolvedWsAccount> = {
         path: { type: "string" },
         dmPolicy: { type: "string", enum: ["open", "pairing", "allowlist"] },
         allowFrom: { type: "array", items: { type: "string" } },
+        auth: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            enabled: { type: "boolean" },
+            endpoint: { type: "string" },
+            timeout: { type: "integer", minimum: 1000 },
+            required: { type: "boolean" },
+          },
+        },
+        dynamicAgentCreation: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            enabled: { type: "boolean" },
+            workspaceTemplate: { type: "string" },
+            agentDirTemplate: { type: "string" },
+            maxAgents: { type: "integer", minimum: 1 },
+          },
+        },
       },
     },
   },
@@ -71,7 +91,7 @@ export const wsPlugin: ChannelPlugin<ResolvedWsAccount> = {
         channels: {
           ...cfg.channels,
           websocket: {
-            ...(cfg.channels as Record<string, unknown>)?.ws,
+            ...(cfg.channels as Record<string, unknown>)?.websocket,
             enabled,
           },
         },
@@ -80,7 +100,7 @@ export const wsPlugin: ChannelPlugin<ResolvedWsAccount> = {
     deleteAccount: ({ cfg, accountId }) => {
       const next = { ...cfg } as ClawdbotConfig;
       const nextChannels = { ...cfg.channels } as Record<string, unknown>;
-      delete nextChannels.ws;
+      delete nextChannels.websocket;
       if (Object.keys(nextChannels).length > 0) {
         next.channels = nextChannels;
       } else {

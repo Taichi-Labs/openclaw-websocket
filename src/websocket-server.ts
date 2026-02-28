@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket, RawData } from "ws";
 import type { IncomingMessage } from "http";
-import type { WsConfig, WsInboundMessage, WsOutboundMessage, WsMessageContext } from "./types.js";
+import type { WsConfig, WsAuthConfig, WsInboundMessage, WsOutboundMessage, WsMessageContext } from "./types.js";
+import { verifyToken, AuthError } from "./auth.js";
 import { randomUUID } from "crypto";
 
 export interface WsServerOptions {
@@ -14,6 +15,7 @@ interface ClientConnection {
   ws: WebSocket;
   senderId: string;
   senderName?: string;
+  authenticated: boolean;
   connectedAt: number;
 }
 
@@ -42,7 +44,8 @@ export class WsChatServer {
         this.wss.on("connection", (ws, req) => this.handleConnection(ws, req));
 
         this.wss.on("listening", () => {
-          this.log(`ws: server listening on ${this.config.host}:${this.config.port}${this.config.path}`);
+          this.log(`websocket: server listening on ${this.config.host}:${this.config.port}${this.config.path}`);
+          this.log(`websocket: auth ${this.authEnabled ? "ENABLED" : "DISABLED"}${this.authEnabled && this.authConfig?.required ? " (required)" : ""}`);
           resolve();
         });
 
@@ -68,32 +71,79 @@ export class WsChatServer {
     }
   }
 
-  private handleConnection(ws: WebSocket, req: IncomingMessage): void {
+  private get authConfig(): WsAuthConfig | undefined {
+    return this.config.auth;
+  }
+
+  private get authEnabled(): boolean {
+    return !!this.authConfig?.enabled;
+  }
+
+  private async handleConnection(ws: WebSocket, req: IncomingMessage): Promise<void> {
     const connectionId = randomUUID();
     const urlParams = new URL(req.url ?? "/", `http://${req.headers.host}`).searchParams;
-    const senderId = urlParams.get("senderId") ?? connectionId;
-    const senderName = urlParams.get("senderName") ?? undefined;
+
+    let senderId = urlParams.get("senderId") ?? connectionId;
+    let senderName = urlParams.get("senderName") ?? undefined;
+    let authenticated = false;
+
+    if (this.authEnabled) {
+      const token = urlParams.get("token");
+      if (token) {
+        try {
+          const authParams: Record<string, string> = {};
+          urlParams.forEach((value, key) => { authParams[key] = value; });
+          if (!authParams.tokenType) {
+            authParams.tokenType = "local";
+          }
+          const authResult = await verifyToken(this.authConfig!, authParams);
+          senderId = authResult.userId;
+          senderName = authResult.username;
+          authenticated = true;
+          this.log(`websocket: auth ok id=${connectionId} userId=${senderId} tokenType=${authParams.tokenType}`);
+        } catch (err) {
+          if (this.authConfig!.required) {
+            this.log(`websocket: auth failed id=${connectionId}: ${(err as Error).message}`);
+            ws.send(JSON.stringify({
+              type: "chat.error",
+              error: `Authentication failed: ${(err as AuthError).code ?? "unknown"}`,
+            }));
+            ws.close(4401, "Authentication failed");
+            return;
+          }
+          this.log(`websocket: auth failed (non-required) id=${connectionId}, allowing anonymous`);
+        }
+      } else if (this.authConfig!.required) {
+        ws.send(JSON.stringify({
+          type: "chat.error",
+          error: "Token required. Connect with ?token=YOUR_TOKEN",
+        }));
+        ws.close(4401, "Token required");
+        return;
+      }
+    }
 
     const conn: ClientConnection = {
       id: connectionId,
       ws,
       senderId,
       senderName,
+      authenticated,
       connectedAt: Date.now(),
     };
 
     this.connections.set(connectionId, conn);
-    this.log(`ws: client connected id=${connectionId} senderId=${senderId}`);
+    this.log(`websocket: client connected id=${connectionId} senderId=${senderId} auth=${authenticated}`);
 
     ws.on("message", (data) => this.handleMessage(conn, data));
 
     ws.on("close", (code, reason) => {
       this.connections.delete(connectionId);
-      this.log(`ws: client disconnected id=${connectionId} code=${code}`);
+      this.log(`websocket: client disconnected id=${connectionId} code=${code}`);
     });
 
     ws.on("error", (err) => {
-      this.log(`ws: client error id=${connectionId}: ${err.message}`);
+      this.log(`websocket: client error id=${connectionId}: ${err.message}`);
     });
 
     this.sendToClient(conn, {
