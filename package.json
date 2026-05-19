@@ -1,5 +1,5 @@
 {
-  "name": "@taichi-labs/openclaw-websocket",
+  "name": "@drtx32/openclaw-websocket",
   "version": "0.2.0",
   "type": "module",
   "description": "OpenClaw WebSocket chat channel plugin - Connect your apps to OpenClaw via WebSocket",
@@ -53,7 +53,7 @@
       "order": 100
     },
     "install": {
-      "npmSpec": "@taichi-labs/openclaw-websocket",
+      "npmSpec": "@drtx32/openclaw-websocket",
       "registry": "https://registry.npmjs.org",
       "localPath": ".",
       "defaultChoice": "npm"

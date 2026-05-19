@@ -1,6 +1,6 @@
 # openclaw-websocket
 
-[![npm version](https://img.shields.io/npm/v/@taichi-labs/openclaw-websocket.svg)](https://www.npmjs.com/package/@taichi-labs/openclaw-websocket)
+[![npm version](https://img.shields.io/npm/v/@drtx32/openclaw-websocket.svg)](https://www.npmjs.com/package/@drtx32/openclaw-websocket)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 OpenClaw WebSocket 聊天渠道插件 - 通过 WebSocket 连接你的应用到 OpenClaw AI Agent。
@@ -20,10 +20,10 @@ OpenClaw WebSocket 聊天渠道插件 - 通过 WebSocket 连接你的应用到 O
 
 ```bash
 # 从 npm 安装
-openclaw plugins install @taichi-labs/openclaw-websocket
+openclaw plugins install @drtx32/openclaw-websocket
 
 # 或从 GitHub 安装
-openclaw plugins install github:Taichi-Labs/openclaw-websocket
+openclaw plugins install github:drtx32/openclaw-websocket
 ```
 
 ## 配置
