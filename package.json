@@ -1,28 +1,29 @@
 {
-  "name": "@taichi-labs/openclaw-websocket",
+  "name": "@drtx32/openclaw-websocket",
   "version": "0.2.0",
   "type": "module",
   "description": "OpenClaw WebSocket chat channel plugin - Connect your apps to OpenClaw via WebSocket",
   "author": "qingmu",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Taichi-Labs/openclaw-websocket.git"
+    "url": "git+https://github.com/drtx32/openclaw-websocket.git"
   },
-  "homepage": "https://github.com/Taichi-Labs/openclaw-websocket#readme",
+  "homepage": "https://github.com/drtx32/openclaw-websocket#readme",
   "bugs": {
-    "url": "https://github.com/Taichi-Labs/openclaw-websocket/issues"
+    "url": "https://github.com/drtx32/openclaw-websocket/issues"
   },
   "scripts": {
+    "build": "tsc",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "ci:check": "npx tsc --noEmit"
   },
   "license": "MIT",
   "files": [
-    "index.ts",
-    "src/**/*.ts",
-    "!src/**/__tests__/**",
-    "!src/**/*.test.ts",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "index.js",
+    "index.d.ts",
     "openclaw.plugin.json",
     "README.md"
   ],
@@ -36,6 +37,9 @@
     "realtime"
   ],
   "openclaw": {
+    "hooks": [
+      "./dist/index.js"
+    ],
     "extensions": [
       "./index.ts"
     ],
@@ -49,7 +53,7 @@
       "order": 100
     },
     "install": {
-      "npmSpec": "@taichi-labs/openclaw-websocket",
+      "npmSpec": "@drtx32/openclaw-websocket",
       "registry": "https://registry.npmjs.org",
       "localPath": ".",
       "defaultChoice": "npm"
