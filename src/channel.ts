@@ -1,5 +1,5 @@
 import type { ChannelPlugin, ClawdbotConfig } from "openclaw/plugin-sdk";
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/routing";
 import type { ResolvedWsAccount, WsConfig } from "./types.js";
 
 const meta = {
@@ -12,7 +12,7 @@ const meta = {
   order: 100,
 };
 
-function resolveWsAccount(params: { cfg: ClawdbotConfig; accountId?: string }): ResolvedWsAccount {
+function resolveWsAccount(params: { cfg: ClawdbotConfig; accountId?: string | null }): ResolvedWsAccount {
   const { cfg, accountId = DEFAULT_ACCOUNT_ID } = params;
   const channelsCfg = cfg.channels as Record<string, unknown> | undefined;
   const wsCfg = channelsCfg?.websocket as WsConfig | undefined;
@@ -86,12 +86,13 @@ export const wsPlugin: ChannelPlugin<ResolvedWsAccount> = {
     resolveAccount: (cfg, accountId) => resolveWsAccount({ cfg, accountId }),
     defaultAccountId: () => DEFAULT_ACCOUNT_ID,
     setAccountEnabled: ({ cfg, accountId, enabled }) => {
+      const wsConfig = (cfg.channels as Record<string, unknown>)?.websocket as Record<string, unknown> | undefined;
       return {
         ...cfg,
         channels: {
-          ...cfg.channels,
+          ...(cfg.channels ?? {}),
           websocket: {
-            ...(cfg.channels as Record<string, unknown>)?.websocket,
+            ...(wsConfig ?? {}),
             enabled,
           },
         },
