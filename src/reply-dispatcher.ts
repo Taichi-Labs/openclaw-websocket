@@ -1,24 +1,22 @@
-import {
-  createReplyPrefixContext,
-  type ClawdbotConfig,
-  type ReplyPayload,
-  type RuntimeEnv,
-} from "openclaw/plugin-sdk";
+import type { ClawdbotConfig, PluginRuntime, ReplyPayload } from "openclaw/plugin-sdk";
+import { createReplyPrefixContext, type ReplyPrefixContextBundle } from "openclaw/plugin-sdk/compat";
 import type { WsOutboundMessage } from "./types.js";
 import { getWsRuntime } from "./runtime.js";
 
 export interface WsReplyDispatcherOptions {
   cfg: ClawdbotConfig;
   agentId: string;
-  runtime: RuntimeEnv;
+  runtime: PluginRuntime;
   connectionId: string;
   messageId: string;
   send: (msg: WsOutboundMessage) => void;
 }
 
-export function createWsReplyDispatcher(options: WsReplyDispatcherOptions) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createWsReplyDispatcher(options: WsReplyDispatcherOptions): any {
   const { cfg, agentId, connectionId, messageId, send, runtime } = options;
   const core = getWsRuntime();
+
   const prefixContext = createReplyPrefixContext({ cfg, agentId });
 
   const textChunkLimit = 4000;
@@ -31,7 +29,7 @@ export function createWsReplyDispatcher(options: WsReplyDispatcherOptions) {
       onReplyStart: () => {
         send({ type: "chat.typing" });
       },
-      deliver: async (payload: ReplyPayload, info) => {
+      deliver: async (payload: ReplyPayload, info: { kind?: string } | undefined) => {
         const text = payload.text ?? "";
         if (!text.trim()) {
           return;
@@ -48,8 +46,8 @@ export function createWsReplyDispatcher(options: WsReplyDispatcherOptions) {
           });
         }
       },
-      onError: async (error, info) => {
-        runtime.error?.(`ws: ${info.kind} reply failed: ${String(error)}`);
+      onError: async (error: unknown, info: { kind: string }) => {
+        runtime.logging?.getChildLogger?.({})?.error?.(`ws: ${info.kind} reply failed: ${String(error)}`);
         send({
           type: "chat.error",
           messageId,
