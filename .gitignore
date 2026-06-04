@@ -3,3 +3,19 @@ dist/
 *.log
 .DS_Store
 *.tgz
+
+# Test files
+test/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Server directory (not part of this plugin)
+server/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
