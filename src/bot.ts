@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, RuntimeEnv } from "openclaw/plugin-sdk";
+import type { ClawdbotConfig, PluginRuntime } from "openclaw/plugin-sdk";
 import type { WsMessageContext, WsOutboundMessage, WsConfig } from "./types.js";
 import { getWsRuntime } from "./runtime.js";
 import { createWsReplyDispatcher } from "./reply-dispatcher.js";
@@ -14,8 +14,8 @@ export async function handleWsMessage(params: {
   const { cfg, wsConfig, ctx, send, accountId = "default" } = params;
 
   const core = getWsRuntime();
-  const log = core.log ?? console.log;
-  const error = core.error ?? console.error;
+  const log = core.logging?.getChildLogger?.({})?.info ?? console.log;
+  const error = core.logging?.getChildLogger?.({})?.error ?? console.error;
 
   const isGroup = ctx.chatType === "group";
   log(`ws[${accountId}]: received message from ${ctx.senderId}: ${ctx.content.slice(0, 100)}`);

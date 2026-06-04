@@ -14,7 +14,7 @@ const plugin = {
   description: "WebSocket chat channel plugin",
   configSchema: emptyPluginConfigSchema(),
   register(api: OpenClawPluginApi) {
-    const log = api.runtime.log ?? console.log;
+    const log = api.logger?.info ?? console.log;
     log("[openclaw-websocket] plugin registering...");
     setWsRuntime(api.runtime);
     api.registerChannel({ plugin: wsPlugin });
